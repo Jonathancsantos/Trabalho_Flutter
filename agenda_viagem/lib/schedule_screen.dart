@@ -1,9 +1,36 @@
 import 'package:agenda_viagem/trip_model.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:sqflite/sqflite.dart';
 import 'trip_controller.dart';
 import 'package:get/get.dart';
+import 'package:floor/floor.dart';
+import 'package:agenda_viagem/database.dart';
+
+// Define the database and entities
+part 'database.g.dart'; // Import the generated code
+
+@Database(version: 1, entities: [Trip])
+abstract class AppDatabase extends FloorDatabase {
+  TripDao get tripDao;
+}
+
+@dao
+abstract class TripDao {
+  @Query('SELECT * FROM Trip')
+  Future<List<Trip>> findAllTrips();
+
+  @Query('SELECT * FROM Trip WHERE id = :id')
+  Future<Trip?> findTripById(int id);
+
+  @insert
+  Future<int> insertTrip(Trip trip);
+
+  @update
+  Future<int> updateTrip(Trip trip);
+
+  @delete
+  Future<int> deleteTrip(Trip trip);
+}
 
 class ScheduleScreen extends StatefulWidget {
   @override
@@ -17,7 +44,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   final _notesController = TextEditingController();
   var _selectedDate = DateTime.now();
   final TripController _tripController = Get.put(TripController());
-  Database? _database;
+  late AppDatabase _database;
 
   @override
   void initState() {
@@ -26,25 +53,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   }
 
   Future<void> _initDatabase() async {
-    final databasePath = await getDatabasesPath();
-    final path = '$databasePath/trips.db';
-
-    _database = await openDatabase(
-      path,
-      version: 1,
-      onCreate: (db, version) {
-        db.execute(
-          '''
-          CREATE TABLE trips (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            destination TEXT NOT NULL,
-            date TEXT NOT NULL,
-            notes TEXT
-          )
-          ''',
-        );
-      },
-    );
+    // Initialize the database using Floor
+    _database = await $FloorAppDatabase.databaseBuilder('trips.db').build(); // Import $FloorAppDatabase from the generated file
   }
 
   @override
@@ -130,10 +140,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       notes: _notesController.text,
     );
 
-    // Insert trip into the database
-    final db = await _database;
-    final id = await db?.insert('trips', newTrip.toMap());
-    newTrip.id = id; // Update the Trip object with the generated ID
+    // Insert trip into the database using Floor
+    await _database.tripDao.insertTrip(newTrip);
 
     // Update the TripController (if applicable)
     _tripController.addTrip(newTrip);
