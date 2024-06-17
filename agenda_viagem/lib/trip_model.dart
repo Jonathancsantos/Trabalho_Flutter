@@ -1,19 +1,19 @@
-// In trip_model.dart
+import 'package:floor/floor.dart';
+import 'package:intl/intl.dart';
 
+@entity
 class Trip {
-  int? id;
+  @PrimaryKey(autoGenerate: true)
+  final int id; // Adicione um ID para a entidade
+
   final String destination;
-  final DateTime date;
+  final String date;
   final String notes;
 
-  Trip({required this.destination, required this.date, this.notes = ''});
-
-  // This method converts the Trip object to a Map for SQFlite
-  Map<String, dynamic> toMap() {
-    return {
-      'destination': destination,
-      'date': date.toString(), // Convert DateTime to String for SQFlite
-      'notes': notes,
-    };
-  }
+  Trip({
+    required this.id, // Inclua o ID no construtor
+    required this.destination,
+    required this.date,
+    required this.notes,
+  });
 }

@@ -6,9 +6,6 @@ import 'package:get/get.dart';
 import 'package:floor/floor.dart';
 import 'package:agenda_viagem/database.dart';
 
-// Define the database and entities
-part 'database.g.dart'; // Import the generated code
-
 @Database(version: 1, entities: [Trip])
 abstract class AppDatabase extends FloorDatabase {
   TripDao get tripDao;
@@ -54,7 +51,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
   Future<void> _initDatabase() async {
     // Initialize the database using Floor
-    _database = await $FloorAppDatabase.databaseBuilder('trips.db').build(); // Import $FloorAppDatabase from the generated file
+    _database = (await $FloorAppDatabase.databaseBuilder('trips.db').build()) as AppDatabase; // Import $FloorAppDatabase from the generated file
   }
 
   @override

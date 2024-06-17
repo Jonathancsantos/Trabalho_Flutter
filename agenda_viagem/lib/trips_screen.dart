@@ -26,21 +26,21 @@ class TripsScreen extends StatelessWidget {
       body: Obx(() {
         return _tripController.trips.isEmpty
             ? Center(
-                child: Text('Você ainda não possui viagens cadastradas.'),
-              )
+          child: Text('Você ainda não possui viagens cadastradas.'),
+        )
             : ListView.builder(
-                itemCount: _tripController.trips.length,
-                itemBuilder: (context, index) {
-                  final trip = _tripController.trips[index];
-                  return ListTile(
-                    title: Text(trip.destination),
-                    subtitle: Text(DateFormat('dd/MM/yyyy').format(trip.date)),
-                    onTap: () {
-                      _launchMaps(trip.destination);
-                    },
-                  );
-                },
-              );
+          itemCount: _tripController.trips.length,
+          itemBuilder: (context, index) {
+            final trip = _tripController.trips[index];
+            return ListTile(
+              title: Text(trip.destination),
+              subtitle: Text(DateFormat('dd/MM/yyyy').format(trip.date)),
+              onTap: () {
+                _launchMaps(trip.destination);
+              },
+            );
+          },
+        );
       }),
     );
   }

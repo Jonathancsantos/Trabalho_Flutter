@@ -28,5 +28,5 @@ class TripController extends GetxController {
     await _database.tripDao.deleteTrip(trip); // Delete from database
     _loadTrips(); // Update the list of trips
   }
-  // ... add other methods for updating trips, etc.
+// ... add other methods for updating trips, etc.
 }
