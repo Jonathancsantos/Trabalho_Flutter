@@ -6,11 +6,6 @@ import 'package:get/get.dart';
 import 'package:floor/floor.dart';
 import 'package:agenda_viagem/database.dart';
 
-@Database(version: 1, entities: [Trip])
-abstract class AppDatabase extends FloorDatabase {
-  TripDao get tripDao;
-}
-
 @dao
 abstract class TripDao {
   @Query('SELECT * FROM Trip')
@@ -40,8 +35,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   final _dateController = TextEditingController();
   final _notesController = TextEditingController();
   var _selectedDate = DateTime.now();
-  final TripController _tripController = Get.put(TripController());
   late AppDatabase _database;
+  late TripController _tripController;
 
   @override
   void initState() {
@@ -52,6 +47,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   Future<void> _initDatabase() async {
     // Initialize the database using Floor
     _database = (await $FloorAppDatabase.databaseBuilder('trips.db').build()) as AppDatabase; // Import $FloorAppDatabase from the generated file
+    _tripController = Get.put(TripController(_database));
   }
 
   @override
@@ -133,7 +129,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   Future<void> _addTrip() async {
     final newTrip = Trip(
       destination: _destinationController.text,
-      date: _selectedDate,
+      date: _selectedDate.millisecondsSinceEpoch,
       notes: _notesController.text,
     );
 

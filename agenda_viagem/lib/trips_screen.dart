@@ -32,9 +32,10 @@ class TripsScreen extends StatelessWidget {
           itemCount: _tripController.trips.length,
           itemBuilder: (context, index) {
             final trip = _tripController.trips[index];
+            final tripDateTime = DateTime.fromMillisecondsSinceEpoch(trip.date);
             return ListTile(
               title: Text(trip.destination),
-              subtitle: Text(DateFormat('dd/MM/yyyy').format(trip.date)),
+              subtitle: Text(DateFormat('dd/MM/yyyy').format(tripDateTime)),
               onTap: () {
                 _launchMaps(trip.destination);
               },
