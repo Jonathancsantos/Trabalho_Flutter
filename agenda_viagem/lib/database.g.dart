@@ -96,7 +96,7 @@ class _$AppDatabase extends AppDatabase {
       },
       onCreate: (database, version) async {
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `Trip` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `destination` TEXT NOT NULL, `date` TEXT NOT NULL, `notes` TEXT NOT NULL)');
+            'CREATE TABLE IF NOT EXISTS `Trip` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `destination` TEXT NOT NULL, `date` INTEGER NOT NULL, `notes` TEXT NOT NULL)');
 
         await callback?.onCreate?.call(database, version);
       },
@@ -163,7 +163,7 @@ class _$TripDao extends TripDao {
         mapper: (Map<String, Object?> row) => Trip(
             id: row['id'] as int,
             destination: row['destination'] as String,
-            date: row['date'] as String,
+            date: row['date'] as int,
             notes: row['notes'] as String));
   }
 
@@ -173,7 +173,7 @@ class _$TripDao extends TripDao {
         mapper: (Map<String, Object?> row) => Trip(
             id: row['id'] as int,
             destination: row['destination'] as String,
-            date: row['date'] as String,
+            date: row['date'] as int,
             notes: row['notes'] as String),
         arguments: [id]);
   }
