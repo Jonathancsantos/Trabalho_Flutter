@@ -1,44 +1,52 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:http/http.dart' as http;
 
-class MapScreen extends StatefulWidget {
+class Map extends StatefulWidget {
+  final String destination;
+
+  Map({required this.destination});
+
   @override
   _MapScreenState createState() => _MapScreenState();
 }
 
-class _MapScreenState extends State<MapScreen> {
+class _MapScreenState extends State<Map> {
   late GoogleMapController mapController;
-  TextEditingController _searchController = TextEditingController();
-  LatLng? _selectedLocation;
+  LatLng? _center;
+  final String apiKey =
+      "AIzaSyCSU7q7Ww2akGYE1LAcVwHxC-5NktibGI8"; // Substitua pela sua chave de API
 
-  final Map<String, LatLng> citiesCoordinates = {
-    "Canela": LatLng(-29.3620, -50.8165),
-    "Gramado": LatLng(-29.3747, -50.8765),
-    "Florianopolis": LatLng(-27.5954, -48.5480),
-    "Santa Maria": LatLng(-29.6864, -53.8069),
-    "Rio Grande": LatLng(-32.0372, -52.0986),
-    "Passo Fundo": LatLng(-28.2639, -52.4047),
-  };
+  @override
+  void initState() {
+    super.initState();
+    _getLatLngFromDestination(widget.destination);
+  }
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
   }
 
-  void _searchCity(String cityName) {
-    final cityCoordinates = citiesCoordinates[cityName];
-    if (cityCoordinates != null) {
-      mapController.animateCamera(
-        CameraUpdate.newLatLngZoom(cityCoordinates, 10),
-      );
+  Future<void> _getLatLngFromDestination(String destination) async {
+    final String endpoint =
+        'https://maps.googleapis.com/maps/api/geocode/json?address=$destination&key=$apiKey';
+
+    final response = await http.get(Uri.parse(endpoint));
+
+    if (response.statusCode == 200) {
+      final json = jsonDecode(response.body);
+      final results = json['results'][0];
+      final geometry = results['geometry'];
+      final location = geometry['location'];
+      final double lat = location['lat'];
+      final double lng = location['lng'];
+
       setState(() {
-        _selectedLocation = cityCoordinates;
+        _center = LatLng(lat, lng);
       });
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Cidade não encontrada.'),
-        ),
-      );
+      throw Exception('Failed to load coordinates for the destination');
     }
   }
 
@@ -46,52 +54,24 @@ class _MapScreenState extends State<MapScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('GPS-Guri Personalizado south'),
+        title: Text(widget.destination),
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      labelText: 'Digite o nome da cidade',
-                    ),
-                  ),
-                ),
-                IconButton(
-                  icon: Icon(Icons.search),
-                  onPressed: () {
-                    _searchCity(_searchController.text);
-                  },
-                ),
-              ],
-            ),
+      body: _center == null
+          ? Center(
+        child: CircularProgressIndicator(),
+      )
+          : GoogleMap(
+        onMapCreated: _onMapCreated,
+        initialCameraPosition: CameraPosition(
+          target: _center!,
+          zoom: 12.0,
+        ),
+        markers: {
+          Marker(
+            markerId: MarkerId(widget.destination),
+            position: _center!,
           ),
-          Expanded(
-            child: GoogleMap(
-              onMapCreated: _onMapCreated,
-              initialCameraPosition: CameraPosition(
-                target: LatLng(-30.0331, -51.23), // Porto Alegre
-                zoom: 7,
-              ),
-              markers: _selectedLocation != null
-                  ? {
-                      Marker(
-                        markerId: MarkerId('selected-location'),
-                        position: _selectedLocation!,
-                        infoWindow: InfoWindow(
-                          title: 'Cidade Selecionada',
-                        ),
-                      ),
-                    }
-                  : {},
-            ),
-          ),
-        ],
+        },
       ),
     );
   }
